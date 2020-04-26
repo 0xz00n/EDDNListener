@@ -24,7 +24,6 @@ def main():
                     break
                 msg = zlib.decompress(msg)
                 jsonmsg = json.loads(msg)
-                print(json.dumps(jsonmsg))
                 if jsonmsg['$schemaRef'] == 'https://eddn.edcd.io/schemas/commodity/3':
                     for commodity in jsonmsg['message']['commodities']:
                         if commodity['name'] == 'lowtemperaturediamond':
