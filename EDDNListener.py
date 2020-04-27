@@ -1,5 +1,6 @@
 #!/usr/bin/python3 -u
 
+import os
 import zmq
 import json
 import zlib
@@ -72,6 +73,12 @@ class EDDNListener():
                 else:
                     size = 'L'
                     return size
+
+    def file_create_check(self):
+        for commodity in self.minerals:
+            if not os.path.exists(commodity):
+                print('Generating file for ' + commodity)
+                os.mknod(commodity)
 
 EDDNListener = EDDNListener()
 EDDNListener.eddn_parser()
