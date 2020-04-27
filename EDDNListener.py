@@ -48,6 +48,7 @@ class EDDNListener():
                                 if sendrequest == 0:
                                     padsize = self.pad_size_check(systemname,stationname)
                                     sendrequest += 1
+                                self.cmdty_write(mineralname,stationname,systemname,sellprice,demand,padsize)
                                 print(stationname + ', ' + systemname)
                                 print('Mineral: ' + mineralname)
                                 print('Sell price: ' + sellprice)
@@ -80,5 +81,11 @@ class EDDNListener():
                 print('Generating file for ' + commodity)
                 os.mknod(commodity)
 
+    def cmdty_write(self,cmdty,station,system,sell,demand,pad):
+        cmdtyfile = open(cmdty, 'a')
+        cmdtyfile.write(station + ',' + system + ',' + str(sell) + ',' + str(demand) + ',' + pad + '\n')
+        cmdtyfile.close()
+
 EDDNListener = EDDNListener()
+EDDNListener.file_create_check()
 EDDNListener.eddn_parser()
