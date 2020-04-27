@@ -10,6 +10,15 @@ class EDDNListener():
     def __init__(self):
         self.eddnrelay = 'tcp://eddn.edcd.io:9500'
         self.eddntimeout = 600000
+        self.minerals = [
+            'lowtemperaturediamond',
+            'opal',
+            'painite',
+            'benitoite',
+            'musgravite',
+            'grandidierite',
+            'serendibite'
+        ]
 
     def eddn_parser(self):
         ctx = zmq.Context()
@@ -27,14 +36,19 @@ class EDDNListener():
                     msg = zlib.decompress(msg)
                     jsonmsg = json.loads(msg)
                     if jsonmsg['$schemaRef'] == 'https://eddn.edcd.io/schemas/commodity/3':
+                        sendrequest = 0
                         for commodity in jsonmsg['message']['commodities']:
-                            if commodity['name'] == 'lowtemperaturediamond':
+                            if commodity['name'] in self.minerals:
+                                mineralname = commodity['name']
                                 stationname = jsonmsg['message']['stationName']
                                 systemname = jsonmsg['message']['systemName']
                                 sellprice = str(commodity['sellPrice'])
                                 demand = str(commodity['demand'])
-                                padsize = self.pad_size_check(systemname,stationname)
+                                if sendrequest == 0:
+                                    padsize = self.pad_size_check(systemname,stationname)
+                                    sendrequest += 1
                                 print(stationname + ', ' + systemname)
+                                print('Mineral: ' + mineralname)
                                 print('Sell price: ' + sellprice)
                                 print('Demand: ' + demand)
                                 print('Pad size: ' + padsize)
