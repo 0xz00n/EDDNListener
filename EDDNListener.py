@@ -66,59 +66,81 @@ class EDDNListener():
                 sleep(5)
             break
 
-    def dict_trimmer(self,dictname):
+    def dict_sorter(self,dictname):
         #Thank the stackoverflow gods for this gift of comprehension that I cannot comprehend.  REJOICE IN ITS FUNCTION!
         dictname = {k: v for k, v in sorted(dictname.items(), key=lambda item: item[1], reverse=True)}
-        if len(dictname) > 10:
+        if len(dictname) > 5:
             i = 0
             tempdict = {}
             for key,value in dictname.items():
                 tempdict[key] = value
                 i += 1
-                if i == 10:
+                if i > 4:
                     break
             dictname = tempdict
-        print(len(dictname))
         print('--------------------')
-        for key,value in dictname.items():
-            print(key,value)
+        for entry in dictname.items():
+            print(entry)
         print('--------------------')
 
+    def dict_timer(self,dictname):
+        deletelist = []
+        for key,value in dictname.items():
+            timediff = datetime.now() - value[3]
+            if int(timediff.total_seconds()) > 60*1440:
+                deletelist.append(key)
+                print(key + ' will be removed due to age')
+        for key in deletelist:
+            del dictname[key]
 
     def add_to_dict(self,mineral,station,system,sell,demand,pad,recvtime):
         if mineral == self.minerals[0]:
-            print('ltd')
+            #print('ltd')
             self.ltddict[station + ',' + system] = [sell,demand,pad,recvtime]
-            self.dict_trimmer(self.ltddict)
+            self.dict_sorter(self.ltddict)
+            self.dict_timer(self.ltddict)
         elif mineral == self.minerals[1]:
-            print('opal')
+            #print('opal')
             self.opaldict[station + ',' + system] = [sell,demand,pad,recvtime]
-            self.dict_trimmer(self.opaldict)
+            #self.dict_sorter(self.opaldict)
+            #self.dict_timer(self.opaldict)
         elif mineral == self.minerals[2]:
-            print('painite')
+            #print('painite')
             self.paindict[station + ',' + system] = [sell,demand,pad,recvtime]
-            self.dict_trimmer(self.paindict)
+            #self.dict_sorter(self.paindict)
+            #self.dict_timer(self.paindict)
         elif mineral == self.minerals[3]:
-            print('benitoite')
+            #print('benitoite')
             self.benidict[station + ',' + system] = [sell,demand,pad,recvtime]
-            self.dict_trimmer(self.benidict)
+            #self.dict_sorter(self.benidict)
+            #self.dict_timer(self.benidict)
         elif mineral == self.minerals[4]:
-            print('musgravite')
+            #print('musgravite')
             self.musgdict[station + ',' + system] = [sell,demand,pad,recvtime]
-            self.dict_trimmer(self.musgdict)
+            #self.dict_sorter(self.musgdict)
+            #self.dict_timer(self.musgdict)
         elif mineral == self.minerals[5]:
-            print('grandidierite')
+            #print('grandidierite')
             self.grandict[station + ',' + system] = [sell,demand,pad,recvtime]
-            self.dict_trimmer(self.grandict)
+            #self.dict_sorter(self.grandict)
+            #self.dict_timer(self.grandict)
         elif mineral == self.minerals[6]:
-            print('serendibite')
+            #print('serendibite')
             self.seredict[station + ',' + system] = [sell,demand,pad,recvtime]
-            self.dict_trimmer(self.seredict)
+            #self.dict_sorter(self.seredict)
+            #self.dict_timer(self.seredict)
 
     def pad_size_check(self,system,station):
         try:
             r = requests.get('https://www.edsm.net/api-system-v1/stations?systemName=' + system)
+            print('X-Rate-Limit-Remaining: ' + r.headers['X-Rate-Limit-Remaining'])
+            print('X-Rate-Limit-Reset: ' + r.headers['X-Rate-Limit-Reset'])
             jsonmsg = json.loads(r.text)
+            ratelimit = int(r.headers['X-Rate-Limit-Remaining'])
+            if ratelimit < 360:
+                sleep(15)
+            elif ratelimit < 540:
+                sleep(10)
             for entry in jsonmsg['stations']:
                 if entry['name'] == station:
                     if 'outpost' in entry['type'].lower():
