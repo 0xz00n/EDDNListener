@@ -66,7 +66,7 @@ class EDDNListener():
                 sleep(5)
             break
 
-    def dict_sorter(self,dictname):
+    def dict_sorter(self,dictname,cmdty):
         #Thank the stackoverflow gods for this gift of comprehension that I cannot comprehend.  REJOICE IN ITS FUNCTION!
         dictname = {k: v for k, v in sorted(dictname.items(), key=lambda item: item[1], reverse=True)}
         if len(dictname) > 5:
@@ -78,10 +78,7 @@ class EDDNListener():
                 if i > 4:
                     break
             dictname = tempdict
-        print('--------------------')
-        for entry in dictname.items():
-            print(entry)
-        print('--------------------')
+        self.cmdty_write(dictname,cmdty)
 
     def dict_timer(self,dictname):
         deletelist = []
@@ -89,58 +86,48 @@ class EDDNListener():
             timediff = datetime.now() - value[3]
             if int(timediff.total_seconds()) > 60*1440:
                 deletelist.append(key)
-                print(key + ' will be removed due to age')
         for key in deletelist:
             del dictname[key]
 
     def add_to_dict(self,mineral,station,system,sell,demand,pad,recvtime):
         if mineral == self.minerals[0]:
-            #print('ltd')
             self.ltddict[station + ',' + system] = [sell,demand,pad,recvtime]
-            self.dict_sorter(self.ltddict)
+            self.dict_sorter(self.ltddict,self.minerals[0])
             self.dict_timer(self.ltddict)
         elif mineral == self.minerals[1]:
-            #print('opal')
             self.opaldict[station + ',' + system] = [sell,demand,pad,recvtime]
-            #self.dict_sorter(self.opaldict)
-            #self.dict_timer(self.opaldict)
+            self.dict_sorter(self.opaldict,self.minerals[1])
+            self.dict_timer(self.opaldict)
         elif mineral == self.minerals[2]:
-            #print('painite')
             self.paindict[station + ',' + system] = [sell,demand,pad,recvtime]
-            #self.dict_sorter(self.paindict)
-            #self.dict_timer(self.paindict)
+            self.dict_sorter(self.paindict,self.minerals[2])
+            self.dict_timer(self.paindict)
         elif mineral == self.minerals[3]:
-            #print('benitoite')
             self.benidict[station + ',' + system] = [sell,demand,pad,recvtime]
-            #self.dict_sorter(self.benidict)
-            #self.dict_timer(self.benidict)
+            self.dict_sorter(self.benidict,self.minerals[3])
+            self.dict_timer(self.benidict)
         elif mineral == self.minerals[4]:
-            #print('musgravite')
             self.musgdict[station + ',' + system] = [sell,demand,pad,recvtime]
-            #self.dict_sorter(self.musgdict)
-            #self.dict_timer(self.musgdict)
+            self.dict_sorter(self.musgdict,self.minerals[4])
+            self.dict_timer(self.musgdict)
         elif mineral == self.minerals[5]:
-            #print('grandidierite')
             self.grandict[station + ',' + system] = [sell,demand,pad,recvtime]
-            #self.dict_sorter(self.grandict)
-            #self.dict_timer(self.grandict)
+            self.dict_sorter(self.grandict,self.minerals[5])
+            self.dict_timer(self.grandict)
         elif mineral == self.minerals[6]:
-            #print('serendibite')
             self.seredict[station + ',' + system] = [sell,demand,pad,recvtime]
-            #self.dict_sorter(self.seredict)
-            #self.dict_timer(self.seredict)
+            self.dict_sorter(self.seredict,self.minerals[6])
+            self.dict_timer(self.seredict)
 
     def pad_size_check(self,system,station):
         try:
             r = requests.get('https://www.edsm.net/api-system-v1/stations?systemName=' + system)
-            print('X-Rate-Limit-Remaining: ' + r.headers['X-Rate-Limit-Remaining'])
-            print('X-Rate-Limit-Reset: ' + r.headers['X-Rate-Limit-Reset'])
             jsonmsg = json.loads(r.text)
             ratelimit = int(r.headers['X-Rate-Limit-Remaining'])
             if ratelimit < 360:
-                sleep(15)
-            elif ratelimit < 540:
                 sleep(10)
+            elif ratelimit < 540:
+                sleep(5)
             for entry in jsonmsg['stations']:
                 if entry['name'] == station:
                     if 'outpost' in entry['type'].lower():
@@ -159,11 +146,34 @@ class EDDNListener():
                 print('Generating file for ' + commodity)
                 os.mknod(commodity)
 
-    def cmdty_write(self,cmdty,station,system,sell,demand,pad):
-        cmdtyfile = open(cmdty, 'a')
-        cmdtyfile.write(station + ',' + system + ',' + str(sell) + ',' + str(demand) + ',' + pad + '\n')
+    def time_converter(self,timeobj):
+        timediff = datetime.now() - timeobj
+        timeinsec = int(timediff.total_seconds())
+        if timeinsec >= 60:
+            timeinmin = timeinsec//60
+            if timeinmin >= 60:
+                timeinhr = timeinmin//60
+                if timeinhr >= 24:
+                    timeinday = timeinhr//24
+                    timeinday = str(timeinday) + ' days'
+                    return timeinday
+                else:
+                    timeinhr = str(timeinhr) + ' hours'
+                    return timeinhr
+            else:
+                timeinmin = str(timeinmin) + ' mins'
+                return timeinmin
+        else:
+            timeinsec = str(timeinsec) + ' secs'
+            return timeinsec
+
+    def cmdty_write(self,sorteddict,cmdty):
+        cmdtyfile = open(cmdty,'w')
+        for key,value in sorteddict.items():
+            age = self.time_converter(value[3])
+            cmdtyfile.write(key + ',' + str(value[0]) + ',' + str(value[1]) + ',' + value[2] + ',' + age + '\n')
         cmdtyfile.close()
 
 EDDNListener = EDDNListener()
-#EDDNListener.file_create_check()
+EDDNListener.file_create_check()
 EDDNListener.eddn_parser()
