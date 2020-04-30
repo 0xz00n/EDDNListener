@@ -137,6 +137,7 @@ class EDDNListener():
                         size = 'L'
                         return size
         except:
+            print(r.headers)
             size = 'Unknown'
             return size
 
