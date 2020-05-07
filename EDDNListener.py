@@ -142,6 +142,7 @@ class EDDNListener():
         except Exception as e:
             if not e == None:
                 print("Error: " + str(e))
+                print(jsonmsg)
             else:
                 print("Error with NoneType:")
                 print(e)
@@ -180,6 +181,8 @@ class EDDNListener():
         try:
             for key,value in sorteddict.items():
                 age = self.time_converter(value[3])
+                if value[2] == None:
+                    value[2] = "Unknown"
                 cmdtyfile.write(key + ',' + str(value[0]) + ',' + str(value[1]) + ',' + value[2] + ',' + age + '\n')
             cmdtyfile.close()
         except Exception as e:
@@ -189,7 +192,7 @@ class EDDNListener():
                 print(v)
             cmdtyfile.close()
 
+print("Starting parser at " + (datetime.now().strftime("%H:%M:%S on %m/%d/%Y")))
 EDDNListener = EDDNListener()
 EDDNListener.file_create_check()
-print("Starting parser at " + (datetime.now().strftime("%H:%M:%S %d/%y")))
 EDDNListener.eddn_parser()
